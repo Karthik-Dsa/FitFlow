@@ -25,5 +25,5 @@ public class Exercise {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workout_id", nullable = false)
-    private Long workoutId;
+    private Workout workout;
 }

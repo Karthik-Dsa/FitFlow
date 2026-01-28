@@ -6,7 +6,7 @@ This is an **MVP-first project** — features are added incrementally and tested
 
 ---
 
-#🎯 Why Contribute Here?
+# 🎯 Why Contribute Here?
 This isn't just a repo — it's a real-world project designed for learning and collaboration. Whether you're looking to:
 
 ✅ Make your first open-source contribution

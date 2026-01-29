@@ -1,16 +1,17 @@
 import { useState } from "react";
 
 function WorkoutBuilder() {
-  const [title, settitle] = useState("");
+  const [title, setTitle] = useState("");
   const [workoutId, setWorkoutId] = useState(null);
   const [savingWorkout, setSavingWorkout] = useState(false);
 
   const [name, setName] = useState("");
   const [sets, setSets] = useState("");
   const [value, setValue] = useState("");
-  const [type, setType] = useState("reps"); // reps | time
+  const [type, setType] = useState("reps");
 
   const [exercises, setExercises] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
 
   async function saveWorkout() {
     if (!title) return;
@@ -21,11 +22,11 @@ function WorkoutBuilder() {
       const res = await fetch("http://localhost:8080/api/workout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title }),
+        body: JSON.stringify({ title }),
       });
 
       const data = await res.json();
-      setWorkoutId(data.id); 
+      setWorkoutId(data.id);
     } catch (err) {
       console.error("Failed to create workout", err);
     } finally {
@@ -35,41 +36,43 @@ function WorkoutBuilder() {
 
   async function addExercise() {
     if (!name || !sets || !workoutId) return;
-    
-    let payload;
-    
-    if (type === "reps") {
-     payload = {
-      name: name,
-      sets: Number(sets),
-      type: "REP_BASED",
-      reps: Number(value),
-      duration: null,
-     };
-    } else {
-      payload = {
-      name: name,
-      sets: Number(sets),
-      type: "TIME_BASED",
-      reps: null,
-      duration: Number(value),
-    };
-  }
+
+    const payload =
+      type === "reps"
+        ? {
+            name,
+            sets: Number(sets),
+            type: "REP_BASED",
+            reps: Number(value),
+            duration: null,
+          }
+        : {
+            name,
+            sets: Number(sets),
+            type: "TIME_BASED",
+            reps: null,
+            duration: Number(value),
+          };
 
     try {
-      const res = await fetch(`http://localhost:8080/api/workout/${workoutId}/exercises`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `http://localhost:8080/api/workout/${workoutId}/exercises`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      if(!res.ok){
+      if (!res.ok) {
         const errorText = await res.text();
-        console.error("Failed to add exercise :",errorText);
+        console.error("Failed to add exercise:", errorText);
         return;
       }
 
-      setExercises(prev => [...prev,payload]);
+      const savedExercise = await res.json();
+
+      setExercises((prev) => [...prev, savedExercise]);
 
       setName("");
       setSets("");
@@ -79,17 +82,48 @@ function WorkoutBuilder() {
     }
   }
 
+  async function deleteExercise(exerciseId) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this exercise?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(exerciseId);
+
+      const res = await fetch(
+        `http://localhost:8080/api/workout/${workoutId}/exercises/${exerciseId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Failed to delete exercise:", errorText);
+        return;
+      }
+
+      setExercises((prev) =>
+        prev.filter((ex) => ex.id !== exerciseId)
+      );
+    } catch (err) {
+      console.error("Delete failed", err);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div style={styles.wrapper}>
-      <h2 style={styles.title}>
-        {title || "Create Workout"}
-      </h2>
+      <h2 style={styles.title}>{title || "Create Workout"}</h2>
 
       <input
         style={styles.workoutInput}
         placeholder="Workout name (e.g. Chest & Triceps Day)"
         value={title}
-        onChange={(e) => settitle(e.target.value)}
+        onChange={(e) => setTitle(e.target.value)}
         readOnly={!!workoutId}
       />
 
@@ -162,15 +196,25 @@ function WorkoutBuilder() {
       </div>
 
       <div style={styles.list}>
-        {exercises.map((ex, index) => (
-          <div key={index} style={styles.exerciseItem}>
-            <strong>{ex.name}</strong>
-            <span>
-              {ex.sets} sets •{" "}
-              {ex.type === "REP_BASED"
-                ? `${ex.reps} reps`
-                : `${ex.duration} sec`}
-            </span>
+        {exercises.map((ex) => (
+          <div key={ex.id} style={styles.exerciseItem}>
+            <div>
+              <strong>{ex.name}</strong>
+              <span>
+                {ex.sets} sets •{" "}
+                {ex.type === "REP_BASED"
+                  ? `${ex.reps} reps`
+                  : `${ex.duration} sec`}
+              </span>
+            </div>
+
+            <button
+              style={styles.deleteBtn}
+              onClick={() => deleteExercise(ex.id)}
+              disabled={deletingId === ex.id}
+            >
+              {deletingId === ex.id ? "Deleting..." : "Delete"}
+            </button>
           </div>
         ))}
       </div>
@@ -187,12 +231,10 @@ const styles = {
     paddingTop: "80px",
     color: "white",
   },
-
   title: {
     fontSize: "1.8rem",
     marginBottom: "12px",
   },
-
   workoutInput: {
     width: "100%",
     padding: "14px",
@@ -202,7 +244,6 @@ const styles = {
     color: "white",
     marginBottom: "12px",
   },
-
   primaryBtn: {
     width: "100%",
     padding: "14px",
@@ -213,13 +254,11 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
   },
-
   card: {
     background: "rgba(255,255,255,0.05)",
     padding: "20px",
     borderRadius: "16px",
   },
-
   input: {
     width: "100%",
     padding: "12px",
@@ -229,18 +268,15 @@ const styles = {
     color: "white",
     marginBottom: "12px",
   },
-
   row: {
     display: "flex",
     gap: "12px",
   },
-
-   type: {
+  type: {
     display: "flex",
     gap: "10px",
     marginBottom: "14px",
   },
-
   typeBtn: {
     flex: 1,
     padding: "10px",
@@ -250,7 +286,6 @@ const styles = {
     color: "white",
     cursor: "pointer",
   },
-
   activeMode: {
     flex: 1,
     padding: "10px",
@@ -259,7 +294,6 @@ const styles = {
     borderRadius: "10px",
     color: "white",
   },
-
   addBtn: {
     width: "100%",
     padding: "14px",
@@ -270,38 +304,37 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
   },
-
   lockOverlay: {
     position: "absolute",
     inset: 0,
     background: "rgba(0,0,0,0.65)",
-    backdropFilter: "blur(2px)",
     borderRadius: "16px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2,
   },
-
   lockText: {
     fontSize: "14px",
     opacity: 0.85,
-    background: "rgba(255,255,255,0.08)",
-    padding: "10px 16px",
-    borderRadius: "999px",
   },
-
   list: {
     marginTop: "24px",
   },
-
   exerciseItem: {
     padding: "14px",
     borderRadius: "12px",
     background: "rgba(255,255,255,0.05)",
     marginBottom: "10px",
     display: "flex",
-    flexDirection: "column",
-    gap: "4px",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  deleteBtn: {
+    background: "#ef4444",
+    border: "none",
+    borderRadius: "8px",
+    color: "white",
+    padding: "6px 10px",
+    cursor: "pointer",
   },
 };

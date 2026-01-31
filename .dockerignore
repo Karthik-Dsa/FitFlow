@@ -1,0 +1,36 @@
+# Backend .dockerignore
+target/
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+HELP.md
+
+# Frontend
+fitness-frontend/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

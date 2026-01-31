@@ -1,0 +1,117 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-backend:
+    name: Build Backend Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: fitflow-backend:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Test backend image
+      run: |
+        docker run --rm fitflow-backend:test java -version
+
+  build-frontend:
+    name: Build Frontend Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./fitness-frontend
+        file: ./fitness-frontend/Dockerfile
+        push: false
+        tags: fitflow-frontend:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Test frontend image
+      run: |
+        docker run -d --name test-frontend -p 8080:80 fitflow-frontend:test
+        sleep 5
+        curl -f http://localhost:8080 || exit 1
+        docker stop test-frontend
+
+  docker-compose-test:
+    name: Test Docker Compose
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Create .env file
+      run: |
+        cp .env.example .env
+        
+    - name: Start services with Docker Compose
+      run: |
+        docker-compose up -d
+        
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for services to start..."
+        sleep 60
+        
+    - name: Check service health
+      run: |
+        docker-compose ps
+        
+        # Check if database is running
+        docker-compose exec -T database pg_isready -U fitflow || exit 1
+        
+        # Check if backend is running (may take time to start)
+        for i in {1..30}; do
+          if curl -f http://localhost:8080/actuator/health; then
+            echo "Backend is healthy"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "Backend failed to start"
+            docker-compose logs backend
+            exit 1
+          fi
+          echo "Waiting for backend... ($i/30)"
+          sleep 10
+        done
+        
+        # Check if frontend is running
+        curl -f http://localhost || exit 1
+        
+    - name: Show logs on failure
+      if: failure()
+      run: |
+        docker-compose logs
+        
+    - name: Stop services
+      if: always()
+      run: |
+        docker-compose down -v

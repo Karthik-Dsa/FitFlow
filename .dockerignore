@@ -1,6 +1,5 @@
 # Backend .dockerignore
 target/
-.mvn/
 !.mvn/wrapper/maven-wrapper.jar
 *.jar
 *.war

@@ -1,16 +1,18 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "users")
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,14 +24,19 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
     @PrePersist
-    protected void onCreate() {
+    protected void onCreate(){
         this.createdAt = LocalDateTime.now();
+    }
+
+    public void changePassword(String password){
+        this.password = password;
     }
 }

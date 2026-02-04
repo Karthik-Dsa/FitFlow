@@ -37,11 +37,14 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Username already exists");
         }
 
-        // Create new user
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        // Create new user with all required fields
+        User user = new User(
+            null, // id will be generated
+            request.getUsername(),
+            request.getEmail(),
+            null, // createdAt will be set by @PrePersist
+            passwordEncoder.encode(request.getPassword())
+        );
 
         User savedUser = userRepository.save(user);
 

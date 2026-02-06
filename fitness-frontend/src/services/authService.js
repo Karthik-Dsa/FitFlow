@@ -11,8 +11,14 @@ export const authService = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
+      let errorMessage = 'Registration failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        // Response body is not JSON, use default message
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -37,8 +43,14 @@ export const authService = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      let errorMessage = 'Login failed';
+      try {
+        const error = await response.json();
+        errorMessage = error.message || errorMessage;
+      } catch (e) {
+        // Response body is not JSON, use default message
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -60,7 +72,14 @@ export const authService = {
 
   getCurrentUser() {
     const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      // Malformed data in localStorage, clear it
+      localStorage.removeItem('user');
+      return null;
+    }
   },
 
   getToken() {

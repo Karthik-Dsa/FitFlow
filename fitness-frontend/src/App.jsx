@@ -1,4 +1,7 @@
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Landing from './components/Landing';
+import Login from './components/Login';
+import Register from './components/Register';
 import Dock from './components/Dock';
 
 import {
@@ -8,7 +11,16 @@ import {
   VscSettingsGear
 } from 'react-icons/vsc';
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
+
+  const handleAuthSuccess = () => {
+    navigate('/');
+  };
+
+  const handleSignUp = () => {
+    navigate('/register');
+  };
 
   const items = [
     {
@@ -35,9 +47,31 @@ function App() {
 
   return (
     <div style={styles.app}>
-
-      {/* Screens */}
-      <Landing />
+      <Routes>
+        <Route 
+          path="/" 
+          element={<Landing onSignUp={handleSignUp} />} 
+        />
+        <Route 
+          path="/login" 
+          element={
+            <Login 
+              onSuccess={handleAuthSuccess} 
+              onSwitchToRegister={() => navigate('/register')}
+            />
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            <Register 
+              onSuccess={handleAuthSuccess} 
+              onSwitchToLogin={() => navigate('/login')}
+            />
+          } 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {/* Dock */}
       <div style={styles.dockWrapper}>
@@ -48,8 +82,15 @@ function App() {
           magnification={70}
         />
       </div>
-
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

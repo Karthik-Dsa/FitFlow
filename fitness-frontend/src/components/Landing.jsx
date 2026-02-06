@@ -2,7 +2,7 @@ import { useState } from 'react';
 import StarBorder from './StarBorder';
 import CreateWorkout from './WorkoutBuilder';
 
-function Landing() {
+function Landing({ onSignUp }) {
   const [start, setStart] = useState(false);
 
   if (start) {
@@ -15,7 +15,7 @@ function Landing() {
         Your journey to fitness starts here.
       </h1>
 
-      <div style={{ marginTop: '28px' }}>
+      <div style={{ marginTop: '28px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
         <StarBorder
           as="button"
           color="white"
@@ -23,6 +23,15 @@ function Landing() {
           onClick={() => setStart(true)}
         >
           Get Started
+        </StarBorder>
+        
+        <StarBorder
+          as="button"
+          color="white"
+          speed="4s"
+          onClick={onSignUp}
+        >
+          Sign Up
         </StarBorder>
       </div>
     </div>

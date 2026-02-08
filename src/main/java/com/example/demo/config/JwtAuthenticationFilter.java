@@ -5,6 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtUtil jwtUtil;
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil){
@@ -41,13 +44,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
+                        logger.debug("JWT authentication successful for user: {}", username);
                     }
-
                 }
-            }catch (Exception e){
-
+            } catch (Exception e){
+                logger.error("JWT authentication failed for request {}: {}", request.getRequestURI(), e.getMessage());
+                // Don't set authentication - request will proceed as unauthenticated
             }
-            filterChain.doFilter(request, response);
         }
+        
+        // CRITICAL: Must be called for all requests
+        filterChain.doFilter(request, response);
     }
 }

@@ -15,17 +15,28 @@ import java.util.Map;
 @Component
 public class JwtUtil{
 
-    @Value("${jwt.secret}")
-    private static String secret;
+    private final String secret;
+    private final Long expiration;
 
-    @Value("${jwt.expiration:86400000}")
-    private static Long expiration;
+    public JwtUtil(
+        @Value("${jwt.secret}") String secret,
+        @Value("${jwt.expiration:86400000}") Long expiration
+    ) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("jwt.secret must be configured in application.properties");
+        }
+        if (secret.length() < 32) {
+            throw new IllegalStateException("jwt.secret must be at least 32 characters for HS256 algorithm");
+        }
+        this.secret = secret;
+        this.expiration = expiration;
+    }
 
-    private static Key getSigningKey() {
+    private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public static String generateToken(Long userId, String username, String email){
+    public String generateToken(Long userId, String username, String email){
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId",userId);
         claims.put("username",username);

@@ -1,0 +1,56 @@
+# ==============================================================================
+# FitFlow Application Configuration Template
+# ==============================================================================
+# Copy this file to 'application.properties' and configure with your values
+# DO NOT commit application.properties to Git (it's in .gitignore)
+# ==============================================================================
+
+# ==============================================================================
+# Database Configuration (REQUIRED)
+# ==============================================================================
+spring.datasource.url=jdbc:postgresql://localhost:5432/fitflow
+spring.datasource.username=your_database_username
+spring.datasource.password=your_database_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# ==============================================================================
+# JPA/Hibernate Configuration
+# ==============================================================================
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# ==============================================================================
+# JWT Configuration (REQUIRED)
+# ==============================================================================
+# SECURITY WARNING: Generate a strong random secret key (minimum 32 characters)
+# You can generate one using: openssl rand -base64 32
+# NEVER commit this secret to version control
+jwt.secret=CHANGE-THIS-TO-A-SECURE-RANDOM-STRING-MINIMUM-32-CHARACTERS
+jwt.expiration=86400000
+
+# ==============================================================================
+# Server Configuration
+# ==============================================================================
+server.port=8080
+
+# ==============================================================================
+# CORS Configuration
+# ==============================================================================
+# Comma-separated list of allowed origins for CORS
+cors.allowed-origins=http://localhost:3000
+
+# ==============================================================================
+# Logging Configuration
+# ==============================================================================
+logging.level.root=INFO
+logging.level.com.example.demo=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+
+# ==============================================================================
+# Flyway Migration (Database Schema Management)
+# ==============================================================================
+spring.flyway.enabled=true
+spring.flyway.baseline-on-migrate=true

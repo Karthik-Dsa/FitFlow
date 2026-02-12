@@ -22,11 +22,11 @@ This isn't just a repo —it's a **real-world project designed for learning and 
 ---
 
 ## 🧠 Tech Stack
-- Backend: Spring Boot, JPA, MySQL
-- Frontend: React
-- Auth: JWT (planned)
-- Testing: JUnit (planned)
-- DevOps: Docker (planned)
+- **Backend**: Spring Boot 4.x, JPA, PostgreSQL, Flyway
+- **Frontend**: React 19, Tailwind CSS
+- **Deployment**: Docker, Docker Compose
+- **Auth**: JWT (planned)
+- **Testing**: JUnit (planned)
 
 ---
 
@@ -40,11 +40,11 @@ This isn't just a repo —it's a **real-world project designed for learning and 
 
 ## 🛣️ Roadmap
 - [x] Workout & Exercise entities
+- [x] Docker & Docker Compose setup
 - [ ] REST APIs
 - [ ] Authentication
 - [ ] Frontend UI
 - [ ] Testing
-- [ ] Docker support
 
 ---
 
@@ -58,7 +58,61 @@ Please read:
 ---
 
 ## 🧑‍💻 Getting Started
+
+### Quick Deployment (Docker)
+
+The fastest way to get FitFlow running is using Docker Compose:
+
 ```bash
-git clone https://github.com/your-username/FitFlow.git
+# Clone the repository
+git clone https://github.com/Karthik-Dsa/FitFlow.git
 cd FitFlow
-Edit `.env` and add your Supabase credentials
+
+# Copy environment configuration
+cp .env.example .env
+
+# Start all services (backend, frontend, database)
+docker-compose up -d
+
+# Verify deployment
+./verify-deployment.sh
+```
+
+Access the application:
+- **Frontend**: http://localhost
+- **Backend API**: http://localhost:8080
+- **Database**: localhost:5432
+
+To stop the application:
+```bash
+docker-compose down
+```
+
+For detailed deployment instructions, troubleshooting, and production setup, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+### Local Development
+
+#### Backend (Spring Boot)
+```bash
+# Requires Java 21
+./mvnw spring-boot:run
+```
+
+#### Frontend (React)
+```bash
+cd fitness-frontend
+npm install
+npm start
+```
+
+#### Database
+Set up PostgreSQL locally or use Docker:
+```bash
+docker run -d \
+  --name fitflow-postgres \
+  -e POSTGRES_DB=fitflow \
+  -e POSTGRES_USER=fitflow \
+  -e POSTGRES_PASSWORD=fitflow123 \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
